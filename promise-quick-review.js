@@ -1,3 +1,4 @@
+/*
 // 프라미스 객체 생성하며 바로 함수 전달 (해당 함수 내부에서 비동기 작업 수행)
 let promise = new Promise(function(resolve, reject) {
     // 프라미스가 만들어지면 전달한 함수는 자동으로 실행됨
@@ -58,3 +59,89 @@ new Promise(function(resolve, reject) {
     alert(result); // 4
     return result * 2;
 });
+
+new Promise(function(resolve, reject) {
+    setTimeout(() => resolve(1), 1000);
+}).then(function(result) {
+    console.log(result)
+    // 연속적인 비동기 작업 진행
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(result * 2)
+        }, 1000)
+    });
+    // 콜백 지옥 문제 없이 then으로 결과 받아내기
+}).then(function(result) {
+    console.log(result)
+    // 또 다른 연속적인 비동기 작업 진행
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(result * 2)
+        }, 1000)
+    });
+}).then(function(result) {
+    console.log(result)
+});
+
+// 작업 중간 예외 발생할 경우 catch 블록으로 이동
+new Promise(function(resolve, reject) {
+    setTimeout(() => {
+        // 초기 작업 진행
+        // throw new Error("error 1");
+        resolve(1);
+    }, 1000); // (*)
+})
+    .then(function(result) {
+        // 중간 작업 진행
+        // throw new Error("error 2");
+        console.log(result);
+        return result * 2;
+    })
+    .then(function(result) {
+        // 마지막 최종 작업 진행
+        // throw new Error("error 3");
+        console.log(result);
+    })
+    // Promise 생성시 전달한 함수 및 체이닝 함수 내부에서 발생한 에러는 모두 여기서 처리 가능
+    .catch(function(e) {
+        console.log(e);
+    });
+
+Promise.all([
+    new Promise(resolve => setTimeout(() => resolve(1), 3000)), // 1
+    new Promise(resolve => setTimeout(() => resolve(2), 2000)), // 2
+    new Promise(resolve => setTimeout(() => {
+        // 어떤 Promise 내부에서든, 실패하면 catch 블록으로 이동
+        // throw new Error("error 3");
+        resolve(3);
+    }, 1000)) // 3
+])
+    .then(result => {
+        // 프라미스 전체가 성공적으로 처리되면 배열([1, 2, 3])이 반환됨,
+        // (즉, 각 프라미스의 결과값이 배열을 구성하는 요소가 됨)
+        console.log(result);
+    })
+    .catch(e => {
+        // 프라미스 중 하나라도 실패하면, 모두 실패한 것으로 처리되고 catch 블록으로 이동
+        console.log(e);
+    });
+*/
+
+// npm install node-fetch
+const fetch = require('node-fetch');
+// npm install axios
+const axios = require('axios');
+
+// fetch
+fetch('https://jsonplaceholder.typicode.com/users/1')
+    // 원격 서버가 응답하면 then 핸들러가 실행됨
+    .then(function(response) {
+        // json 메서드는 응답 텍스트 전체를 자바스크립트 객체로 파싱(변환)하는 작업을 진행하는 프라미스를 반환
+        return response.json();
+    })
+    .then(function(json) {
+        // 객체의 내용을 JSON.stringify 함수를 통해 문자열로 변환하여 출력
+        console.log(JSON.stringify(json));
+    });
+
+
